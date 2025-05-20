@@ -129,17 +129,6 @@ curl -s -L -o runc https://github.com/opencontainers/runc/releases/download/${RU
 chmod +x runc
 mv runc /usr/local/bin
 
-# Install crictl
-echo "Installing crictl..."
-curl -s -L https://github.com/kubernetes-sigs/cri-tools/releases/download/${KUBERNETES_VERSION}/crictl-${KUBERNETES_VERSION}-linux-${TARGETARCH}.tar.gz --output crictl-${KUBERNETES_VERSION}-linux-${TARGETARCH}.tar.gz
-tar -zxf crictl-${KUBERNETES_VERSION}-linux-${TARGETARCH}.tar.gz -C /usr/local/bin
-rm -f crictl-${KUBERNETES_VERSION}-linux-${TARGETARCH}.tar.gz
-
-# Configure crictl
-cat <<EOF > /etc/crictl.yaml
-runtime-endpoint: unix:///run/containerd/containerd.sock
-EOF
-
 # Configure containerd
 mkdir -p /etc/containerd
 containerd config default > /etc/containerd/config.toml
