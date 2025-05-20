@@ -16,7 +16,7 @@ fi
 # Default versions
 KUBERNETES_VERSION=""
 CNI_BINARIES_VERSION="v1.6.0"
-CONTAINERD_VERSION="2.1.0"
+CONTAINERD_VERSION="1.7.27"
 RUNC_VERSION="v1.3.0"
 
 # Parse command line arguments
