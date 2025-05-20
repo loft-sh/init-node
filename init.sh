@@ -83,6 +83,10 @@ if is_arm; then
   TARGETARCH="arm64"
 fi
 
+# make sure we don't operate on /
+mkdir -p init-node
+cd init-node
+
 # Install kubeadm, kubelet, and kubectl
 echo "Installing kubeadm..."
 curl -s -L -o kubeadm https://dl.k8s.io/release/${KUBERNETES_VERSION}/bin/linux/${TARGETARCH}/kubeadm
