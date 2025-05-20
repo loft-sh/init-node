@@ -133,6 +133,12 @@ curl -s -L -o runc https://github.com/opencontainers/runc/releases/download/${RU
 chmod +x runc
 mv runc /usr/local/bin
 
+# Make sure bridge and br_netfilter are active
+if [ ! -e /proc/sys/net/bridge/bridge-nf-call-iptables ]; then
+  echo "Loading bridge and br_netfilter modules..."
+  modprobe -va bridge br_netfilter
+fi
+
 # Configure containerd
 mkdir -p /etc/containerd
 containerd config default > /etc/containerd/config.toml
