@@ -139,6 +139,33 @@ if [ ! -e /proc/sys/net/bridge/bridge-nf-call-iptables ]; then
   modprobe -va bridge br_netfilter
 fi
 
+# Make sure ip forward is set correctly
+if [ "$(sysctl -n net.ipv4.ip_forward)" -ne 1 ]; then
+  echo "Activating ip_forward..."
+  sysctl -w net.ipv4.ip_forward=1
+fi
+
+# Check if conntrack is installed
+if ! command -v conntrack >/dev/null 2>&1; then
+  echo "Installing conntrack..."
+  if command -v apt-get >/dev/null 2>&1; then
+    apt-get update && apt-get install -y conntrack
+  elif command -v yum >/dev/null 2>&1; then
+    yum install -y conntrack-tools
+  elif command -v dnf >/dev/null 2>&1; then
+    dnf install -y conntrack-tools
+  elif command -v pacman >/dev/null 2>&1; then
+    pacman -Sy --noconfirm conntrack-tools
+  elif command -v zypper >/dev/null 2>&1; then
+    zypper install -y conntrack-tools
+  elif command -v apk >/dev/null 2>&1; then
+    apk add conntrack-tools
+  else
+    echo "No supported package manager found. Please install conntrack manually."
+    exit 1
+  fi
+fi
+
 # Configure containerd
 mkdir -p /etc/containerd
 containerd config default > /etc/containerd/config.toml
