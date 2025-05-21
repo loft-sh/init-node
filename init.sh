@@ -18,6 +18,7 @@ KUBERNETES_VERSION=""
 CNI_BINARIES_VERSION="v1.6.0"
 CONTAINERD_VERSION="2.1.0"
 RUNC_VERSION="v1.3.0"
+CRICTL_VERSION="v1.33.0"
 
 # Parse command line arguments
 while [ $# -gt 0 ]; do
@@ -38,9 +39,13 @@ while [ $# -gt 0 ]; do
       RUNC_VERSION="$2"
       shift 2
       ;;
+    --crictl-version)
+      CRICTL_VERSION="$2"
+      shift 2
+      ;;
     *)
       echo "Unknown argument: $1"
-      echo "Usage: $0 --kubernetes-version <version> [--cni-binaries-version <version>] [--containerd-version <version>] [--runc-version <version>]"
+      echo "Usage: $0 --kubernetes-version <version> [--cni-binaries-version <version>] [--containerd-version <version>] [--runc-version <version>] [--crictl-version <version>]"
       exit 1
       ;;
   esac
@@ -49,7 +54,7 @@ done
 # Kubernetes version is required
 if [ -z "$KUBERNETES_VERSION" ]; then
   echo "Error: --kubernetes-version is required"
-  echo "Usage: $0 --kubernetes-version <version> [--cni-binaries-version <version>] [--containerd-version <version>] [--runc-version <version>]"
+  echo "Usage: $0 --kubernetes-version <version> [--cni-binaries-version <version>] [--containerd-version <version>] [--runc-version <version>] [--crictl-version <version>]"
   exit 1
 fi
 
@@ -59,6 +64,7 @@ echo "Kubernetes version: $KUBERNETES_VERSION"
 echo "CNI binaries version: $CNI_BINARIES_VERSION"
 echo "Containerd version: $CONTAINERD_VERSION"
 echo "Runc version: $RUNC_VERSION"
+echo "Crictl version: $CRICTL_VERSION"
 
 # ensure we're running as root
 if [ "$(id -u)" -ne 0 ]; then
@@ -132,6 +138,14 @@ echo "Installing runc..."
 curl -s -L -o runc https://github.com/opencontainers/runc/releases/download/${RUNC_VERSION}/runc.${TARGETARCH}
 chmod +x runc
 mv runc /usr/local/bin
+
+# Install crictl
+echo "Installing crictl..."
+curl -L https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/crictl-${CRICTL_VERSION}-linux-${TARGETARCH}.tar.gz --output crictl-${CRICTL_VERSION}-linux-${TARGETARCH}.tar.gz
+tar -zxf crictl-${CRICTL_VERSION}-linux-${TARGETARCH}.tar.gz -C /usr/local/bin
+rm -f crictl-${CRICTL_VERSION}-linux-${TARGETARCH}.tar.gz
+touch /etc/crictl.yaml
+crictl config --set runtime-endpoint=unix:///run/containerd/containerd.sock
 
 # Make sure bridge and br_netfilter are active
 if [ ! -e /proc/sys/net/bridge/bridge-nf-call-iptables ]; then
