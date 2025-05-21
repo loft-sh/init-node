@@ -141,7 +141,7 @@ mv runc /usr/local/bin
 
 # Install crictl
 echo "Installing crictl..."
-curl -L https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/crictl-${CRICTL_VERSION}-linux-${TARGETARCH}.tar.gz --output crictl-${CRICTL_VERSION}-linux-${TARGETARCH}.tar.gz
+curl -s -L https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/crictl-${CRICTL_VERSION}-linux-${TARGETARCH}.tar.gz --output crictl-${CRICTL_VERSION}-linux-${TARGETARCH}.tar.gz
 tar -zxf crictl-${CRICTL_VERSION}-linux-${TARGETARCH}.tar.gz -C /usr/local/bin
 rm -f crictl-${CRICTL_VERSION}-linux-${TARGETARCH}.tar.gz
 touch /etc/crictl.yaml
