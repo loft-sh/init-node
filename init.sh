@@ -186,7 +186,7 @@ mkdir -p /etc/kubernetes/manifests
 containerd config default > /etc/containerd/config.toml
 
 # Make sure to use systemd cgroups
-sed -i 's/^SystemdCgroup = false$/SystemdCgroup = true/' /etc/containerd/config.toml
+sed -i.bak -E 's#^[[:space:]]*(SystemdCgroup)[[:space:]]*=[[:space:]]*false#\1 = true#' /etc/containerd/config.toml
 
 # Create containerd.service
 mkdir -p /etc/systemd/system
