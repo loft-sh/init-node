@@ -182,6 +182,7 @@ fi
 
 # Configure containerd
 mkdir -p /etc/containerd
+mkdir -p /etc/kubernetes/manifests
 containerd config default > /etc/containerd/config.toml
 
 # Create containerd.service
