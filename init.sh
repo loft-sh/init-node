@@ -83,6 +83,7 @@ fi
 # Install Kubernetes binaries
 echo "Installing Kubernetes binaries..."
 curl -s -L -o kubernetes.tar.gz ${REPOSITORY_URL}/${KUBERNETES_VERSION}/kubernetes-${KUBERNETES_VERSION}-${TARGETARCH}.tar.gz
+rm -rf kubernetes-binaries
 mkdir kubernetes-binaries
 tar -zxf kubernetes.tar.gz -C kubernetes-binaries
 mkdir -p ${BINARIES_DIR} || true
