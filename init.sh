@@ -38,10 +38,6 @@ while [ $# -gt 0 ]; do
       CNI_BINARIES_DIR="$2"
       shift 2
       ;;
-    --crictl-version)
-      CRICTL_VERSION="$2"
-      shift 2
-      ;;
     *)
       echo "Unknown argument: $1"
       echo "Usage: $0 --kubernetes-version <version>"
@@ -90,21 +86,21 @@ curl -s -L -o kubernetes.tar.gz ${REPOSITORY_URL}/${KUBERNETES_VERSION}/kubernet
 mkdir kubernetes-binaries
 tar -zxf kubernetes.tar.gz -C kubernetes-binaries
 mkdir -p ${BINARIES_DIR} || true
-mv kubernetes-binaries/kubeadm ${BINARIES_DIR}/kubeadm
-mv kubernetes-binaries/kubelet ${BINARIES_DIR}/kubelet
-mv kubernetes-binaries/kubectl ${BINARIES_DIR}/kubectl 
-mv kubernetes-binaries/ctr ${BINARIES_DIR}/ctr
-mv kubernetes-binaries/crictl ${BINARIES_DIR}/crictl
-mv kubernetes-binaries/containerd ${BINARIES_DIR}/containerd
-mv kubernetes-binaries/containerd-shim-runc-v2 ${BINARIES_DIR}/containerd-shim-runc-v2
-mv kubernetes-binaries/runc ${BINARIES_DIR}/runc
+mv kubernetes-binaries/release/kubeadm ${BINARIES_DIR}/kubeadm
+mv kubernetes-binaries/release/kubelet ${BINARIES_DIR}/kubelet
+mv kubernetes-binaries/release/kubectl ${BINARIES_DIR}/kubectl 
+mv kubernetes-binaries/release/ctr ${BINARIES_DIR}/ctr
+mv kubernetes-binaries/release/crictl ${BINARIES_DIR}/crictl
+mv kubernetes-binaries/release/containerd ${BINARIES_DIR}/containerd
+mv kubernetes-binaries/release/containerd-shim-runc-v2 ${BINARIES_DIR}/containerd-shim-runc-v2
+mv kubernetes-binaries/release/runc ${BINARIES_DIR}/runc
 mkdir -p ${CNI_BINARIES_DIR} || true
-mv kubernetes-binaries/cni/loopback ${CNI_BINARIES_DIR}/loopback
-mv kubernetes-binaries/cni/portmap ${CNI_BINARIES_DIR}/portmap
-mv kubernetes-binaries/cni/bandwidth ${CNI_BINARIES_DIR}/bandwidth
-mv kubernetes-binaries/cni/bridge ${CNI_BINARIES_DIR}/bridge
-mv kubernetes-binaries/cni/firewall ${CNI_BINARIES_DIR}/firewall
-mv kubernetes-binaries/cni/host-local ${CNI_BINARIES_DIR}/host-local
+mv kubernetes-binaries/release/cni/loopback ${CNI_BINARIES_DIR}/loopback
+mv kubernetes-binaries/release/cni/portmap ${CNI_BINARIES_DIR}/portmap
+mv kubernetes-binaries/release/cni/bandwidth ${CNI_BINARIES_DIR}/bandwidth
+mv kubernetes-binaries/release/cni/bridge ${CNI_BINARIES_DIR}/bridge
+mv kubernetes-binaries/release/cni/firewall ${CNI_BINARIES_DIR}/firewall
+mv kubernetes-binaries/release/cni/host-local ${CNI_BINARIES_DIR}/host-local
 rm kubernetes.tar.gz
 rm -rf kubernetes-binaries
 
