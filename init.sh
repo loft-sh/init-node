@@ -95,12 +95,12 @@ mv kubernetes-binaries/release/containerd ${BINARIES_DIR}/containerd
 mv kubernetes-binaries/release/containerd-shim-runc-v2 ${BINARIES_DIR}/containerd-shim-runc-v2
 mv kubernetes-binaries/release/runc ${BINARIES_DIR}/runc
 mkdir -p ${CNI_BINARIES_DIR} || true
-mv kubernetes-binaries/release/cni/loopback ${CNI_BINARIES_DIR}/loopback
-mv kubernetes-binaries/release/cni/portmap ${CNI_BINARIES_DIR}/portmap
-mv kubernetes-binaries/release/cni/bandwidth ${CNI_BINARIES_DIR}/bandwidth
-mv kubernetes-binaries/release/cni/bridge ${CNI_BINARIES_DIR}/bridge
-mv kubernetes-binaries/release/cni/firewall ${CNI_BINARIES_DIR}/firewall
-mv kubernetes-binaries/release/cni/host-local ${CNI_BINARIES_DIR}/host-local
+mv kubernetes-binaries/release/cni/bin/loopback ${CNI_BINARIES_DIR}/loopback
+mv kubernetes-binaries/release/cni/bin/portmap ${CNI_BINARIES_DIR}/portmap
+mv kubernetes-binaries/release/cni/bin/bandwidth ${CNI_BINARIES_DIR}/bandwidth
+mv kubernetes-binaries/release/cni/bin/bridge ${CNI_BINARIES_DIR}/bridge
+mv kubernetes-binaries/release/cni/bin/firewall ${CNI_BINARIES_DIR}/firewall
+mv kubernetes-binaries/release/cni/bin/host-local ${CNI_BINARIES_DIR}/host-local
 rm kubernetes.tar.gz
 rm -rf kubernetes-binaries
 
