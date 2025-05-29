@@ -15,10 +15,9 @@ fi
 
 # Default versions
 KUBERNETES_VERSION=""
-CNI_BINARIES_VERSION="v1.6.0"
-CONTAINERD_VERSION="2.1.0"
-RUNC_VERSION="v1.3.0"
-CRICTL_VERSION="v1.33.0"
+REPOSITORY_URL="https://github.com/loft-sh/kubernetes/releases/download"
+BINARIES_DIR="/usr/local/bin"
+CNI_BINARIES_DIR="/opt/cni/bin"
 
 # Parse command line arguments
 while [ $# -gt 0 ]; do
@@ -27,16 +26,16 @@ while [ $# -gt 0 ]; do
       KUBERNETES_VERSION="$2"
       shift 2
       ;;
-    --cni-binaries-version)
-      CNI_BINARIES_VERSION="$2"
+    --repository-url)
+      REPOSITORY_URL="$2"
       shift 2
       ;;
-    --containerd-version)
-      CONTAINERD_VERSION="$2"
+    --binaries-dir)
+      BINARIES_DIR="$2"
       shift 2
       ;;
-    --runc-version)
-      RUNC_VERSION="$2"
+    --cni-binaries-dir)
+      CNI_BINARIES_DIR="$2"
       shift 2
       ;;
     --crictl-version)
@@ -45,7 +44,7 @@ while [ $# -gt 0 ]; do
       ;;
     *)
       echo "Unknown argument: $1"
-      echo "Usage: $0 --kubernetes-version <version> [--cni-binaries-version <version>] [--containerd-version <version>] [--runc-version <version>] [--crictl-version <version>]"
+      echo "Usage: $0 --kubernetes-version <version>"
       exit 1
       ;;
   esac
@@ -54,17 +53,13 @@ done
 # Kubernetes version is required
 if [ -z "$KUBERNETES_VERSION" ]; then
   echo "Error: --kubernetes-version is required"
-  echo "Usage: $0 --kubernetes-version <version> [--cni-binaries-version <version>] [--containerd-version <version>] [--runc-version <version>] [--crictl-version <version>]"
+  echo "Usage: $0 --kubernetes-version <version>"
   exit 1
 fi
 
 # Print the versions
 echo "Preparing node for Kubernetes installation..."
 echo "Kubernetes version: $KUBERNETES_VERSION"
-echo "CNI binaries version: $CNI_BINARIES_VERSION"
-echo "Containerd version: $CONTAINERD_VERSION"
-echo "Runc version: $RUNC_VERSION"
-echo "Crictl version: $CRICTL_VERSION"
 
 # ensure we're running as root
 if [ "$(id -u)" -ne 0 ]; then
@@ -89,63 +84,36 @@ if is_arm; then
   TARGETARCH="arm64"
 fi
 
-# make sure we don't operate on /
-mkdir -p init-node
-cd init-node
+# Install Kubernetes binaries
+echo "Installing Kubernetes binaries..."
+curl -s -L -o kubernetes.tar.gz ${REPOSITORY_URL}/${KUBERNETES_VERSION}/kubernetes-${KUBERNETES_VERSION}-${TARGETARCH}.tar.gz
+mkdir kubernetes-binaries
+tar -zxf kubernetes.tar.gz -C kubernetes-binaries
+mkdir -p ${BINARIES_DIR} || true
+mv kubernetes-binaries/kubeadm ${BINARIES_DIR}/kubeadm
+mv kubernetes-binaries/kubelet ${BINARIES_DIR}/kubelet
+mv kubernetes-binaries/kubectl ${BINARIES_DIR}/kubectl 
+mv kubernetes-binaries/ctr ${BINARIES_DIR}/ctr
+mv kubernetes-binaries/crictl ${BINARIES_DIR}/crictl
+mv kubernetes-binaries/containerd ${BINARIES_DIR}/containerd
+mv kubernetes-binaries/containerd-shim-runc-v2 ${BINARIES_DIR}/containerd-shim-runc-v2
+mv kubernetes-binaries/runc ${BINARIES_DIR}/runc
+mkdir -p ${CNI_BINARIES_DIR} || true
+mv kubernetes-binaries/cni/loopback ${CNI_BINARIES_DIR}/loopback
+mv kubernetes-binaries/cni/portmap ${CNI_BINARIES_DIR}/portmap
+mv kubernetes-binaries/cni/bandwidth ${CNI_BINARIES_DIR}/bandwidth
+mv kubernetes-binaries/cni/bridge ${CNI_BINARIES_DIR}/bridge
+mv kubernetes-binaries/cni/firewall ${CNI_BINARIES_DIR}/firewall
+mv kubernetes-binaries/cni/host-local ${CNI_BINARIES_DIR}/host-local
+rm kubernetes.tar.gz
+rm -rf kubernetes-binaries
 
-# Install kubeadm, kubelet, and kubectl
-echo "Installing kubeadm..."
-curl -s -L -o kubeadm https://dl.k8s.io/release/${KUBERNETES_VERSION}/bin/linux/${TARGETARCH}/kubeadm
-chmod +x kubeadm
-mv kubeadm /usr/local/bin/kubeadm
-echo "Installing kubelet..."
-curl -s -L -o kubelet https://dl.k8s.io/release/${KUBERNETES_VERSION}/bin/linux/${TARGETARCH}/kubelet
-chmod +x kubelet
-mv kubelet /usr/local/bin/kubelet
-echo "Installing kubectl..."
-curl -s -L -o kubectl https://dl.k8s.io/release/${KUBERNETES_VERSION}/bin/linux/${TARGETARCH}/kubectl
-chmod +x kubectl
-mv kubectl /usr/local/bin/kubectl
-
-# Install CNI plugins
-echo "Installing CNI plugins..."
-curl -s -L -o cni.tgz https://github.com/containernetworking/plugins/releases/download/${CNI_BINARIES_VERSION}/cni-plugins-linux-${TARGETARCH}-${CNI_BINARIES_VERSION}.tgz
-mkdir cni
-tar -zxf cni.tgz -C cni
-mkdir -p /opt/cni/bin
-mv cni/loopback /opt/cni/bin
-mv cni/portmap /opt/cni/bin
-mv cni/bandwidth /opt/cni/bin
-mv cni/bridge /opt/cni/bin
-mv cni/firewall /opt/cni/bin
-mv cni/host-local /opt/cni/bin
-rm cni.tgz
-rm -rf cni
-
-# Install containerd & runc
-echo "Installing containerd..."
-curl -s -L -o containerd.tgz https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}-linux-${TARGETARCH}.tar.gz
-tar -zxf containerd.tgz bin
-chmod +x bin/containerd-shim-runc-v2
-mv bin/containerd-shim-runc-v2 /usr/local/bin
-chmod +x bin/containerd
-mv bin/containerd /usr/local/bin
-chmod +x bin/ctr
-mv bin/ctr /usr/local/bin
-rm containerd.tgz
-rm -rf bin
-echo "Installing runc..."
-curl -s -L -o runc https://github.com/opencontainers/runc/releases/download/${RUNC_VERSION}/runc.${TARGETARCH}
-chmod +x runc
-mv runc /usr/local/bin
-
-# Install crictl
-echo "Installing crictl..."
-curl -s -L https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/crictl-${CRICTL_VERSION}-linux-${TARGETARCH}.tar.gz --output crictl-${CRICTL_VERSION}-linux-${TARGETARCH}.tar.gz
-tar -zxf crictl-${CRICTL_VERSION}-linux-${TARGETARCH}.tar.gz -C /usr/local/bin
-rm -f crictl-${CRICTL_VERSION}-linux-${TARGETARCH}.tar.gz
-touch /etc/crictl.yaml
-crictl config --set runtime-endpoint=unix:///run/containerd/containerd.sock
+# Configure crictl
+if [ ! -f /etc/crictl.yaml ]; then
+cat <<EOF > /etc/crictl.yaml
+runtime-endpoint: unix:///run/containerd/containerd.sock
+EOF
+fi
 
 # Make sure bridge and br_netfilter are active
 if [ ! -e /proc/sys/net/bridge/bridge-nf-call-iptables ]; then
@@ -157,6 +125,7 @@ fi
 if [ "$(sysctl -n net.ipv4.ip_forward)" -ne 1 ]; then
   echo "Activating ip_forward..."
   sysctl -w net.ipv4.ip_forward=1
+  sysctl -w net.ipv6.conf.all.forwarding=1
 fi
 
 # Check if conntrack is installed
@@ -183,10 +152,13 @@ fi
 # Configure containerd
 mkdir -p /etc/containerd
 mkdir -p /etc/kubernetes/manifests
-containerd config default > /etc/containerd/config.toml
+if [ ! -f /etc/containerd/config.toml ]; then
+  # Create default config if not there
+  containerd config default > /etc/containerd/config.toml
 
-# Make sure to use systemd cgroups
-sed -i.bak -E 's#^[[:space:]]*(SystemdCgroup)[[:space:]]*=[[:space:]]*false#\1 = true#' /etc/containerd/config.toml
+  # Make sure to use systemd cgroups
+  sed -i.bak -E 's#^[[:space:]]*(SystemdCgroup)[[:space:]]*=[[:space:]]*false#\1 = true#' /etc/containerd/config.toml
+fi
 
 # Create containerd.service
 mkdir -p /etc/systemd/system
@@ -197,7 +169,7 @@ Documentation=https://containerd.io
 After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/containerd
+ExecStart=${BINARIES_DIR}/containerd
 Type=notify
 PIDFile=/run/containerd/containerd.pid
 Restart=always
@@ -226,7 +198,7 @@ Documentation=http://kubernetes.io/docs/
 ConditionPathExists=/var/lib/kubelet/config.yaml
 
 [Service]
-ExecStart=/usr/local/bin/kubelet
+ExecStart=${BINARIES_DIR}/kubelet
 Restart=always
 StartLimitInterval=0
 # NOTE: kind deviates from upstream here with a lower RestartSec
@@ -264,7 +236,7 @@ Environment="KUBELET_CONFIG_ARGS=--config=/var/lib/kubelet/config.yaml"
 # This is a file that "kubeadm init" and "kubeadm join" generates at runtime, populating the KUBELET_KUBEADM_ARGS variable dynamically
 EnvironmentFile=-/var/lib/kubelet/kubeadm-flags.env
 ExecStart=
-ExecStart=/usr/local/bin/kubelet \$KUBELET_KUBECONFIG_ARGS \$KUBELET_CONFIG_ARGS \$KUBELET_KUBEADM_ARGS \$KUBELET_EXTRA_ARGS
+ExecStart=${BINARIES_DIR}/kubelet \$KUBELET_KUBECONFIG_ARGS \$KUBELET_CONFIG_ARGS \$KUBELET_KUBEADM_ARGS \$KUBELET_EXTRA_ARGS
 EOF
 
 # Enable containerd and kubelet
