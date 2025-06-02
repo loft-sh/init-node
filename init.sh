@@ -151,7 +151,7 @@ mkdir -p /etc/containerd
 mkdir -p /etc/kubernetes/manifests
 if [ ! -f /etc/containerd/config.toml ]; then
   # Create default config if not there
-  containerd config default > /etc/containerd/config.toml
+  ${BINARIES_DIR}/containerd config default > /etc/containerd/config.toml
 
   # Make sure to use systemd cgroups
   sed -i.bak -E 's#^[[:space:]]*(SystemdCgroup)[[:space:]]*=[[:space:]]*false#\1 = true#' /etc/containerd/config.toml
