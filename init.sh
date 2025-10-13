@@ -310,9 +310,6 @@ OOMScoreAdjust=-999
 WantedBy=multi-user.target
 EOF
 
-# Stop potentially running kubelet
-stop_and_wait_for_kubelet
-
 # Create kubelet.service
 cat <<EOF > /etc/systemd/system/kubelet.service
 # slightly modified from:
